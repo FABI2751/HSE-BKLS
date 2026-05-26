@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Programa de Trabajo Preventivo – Bakels Chile</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue: #003087;
+    --blue-dark: #001f5c;
+    --blue-mid: #1a4a9e;
+    --blue-light: #e6edf8;
+    --blue-pale: #f0f4fc;
+    --orange: #e87722;
+    --green: #15803d;
+    --red: #dc2626;
+    --amber: #d97706;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-400: #9ca3af;
+    --gray-600: #4b5563;
+    --gray-800: #1f2937;
+    --white: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 13px; }
+
+  /* ── TOPBAR ── */
+  .topbar { background: var(--blue); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .logo-badge { background: white; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 800; color: var(--blue); letter-spacing: 1px; }
+  .topbar h1 { color: white; font-size: 14px; font-weight: 600; letter-spacing: 0.3px; }
+  .topbar-right { display: flex; gap: 8px; }
+  .btn { padding: 6px 14px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .15s; }
+  .btn-outline { background: transparent; border: 1.5px solid rgba(255,255,255,0.5); color: white; }
+  .btn-outline:hover { background: rgba(255,255,255,0.15); }
+  .btn-orange { background: var(--orange); color: white; }
+  .btn-orange:hover { background: #d06820; }
+  .btn-white { background: white; color: var(--blue); }
+  .btn-white:hover { background: var(--blue-light); }
+  .btn-red { background: #dc2626; color: white; font-size: 11px; padding: 4px 10px; }
+  .btn-red:hover { background: #b91c1c; }
+  .btn-green { background: var(--green); color: white; font-size: 11px; padding: 4px 10px; }
+  .btn-green:hover { background: #166534; }
+  .btn-blue-sm { background: var(--blue); color: white; font-size: 11px; padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; }
+  .btn-blue-sm:hover { background: var(--blue-mid); }
+
+  /* ── TABS ── */
+  .tab-nav { background: var(--blue-dark); display: flex; overflow-x: auto; padding: 0 12px; gap: 2px; scrollbar-width: none; }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 10px 16px; color: rgba(255,255,255,0.55); cursor: pointer; font-size: 11.5px; font-weight: 500; white-space: nowrap; border-bottom: 3px solid transparent; transition: all .15s; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab-btn:hover { color: rgba(255,255,255,0.85); }
+  .tab-btn.active { color: white; border-bottom-color: var(--orange); }
+
+  /* ── CONTENT ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .page-pad { padding: 16px 20px; }
+
+  /* ── SUMMARY BAR ── */
+  .summary-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+  .s-card { background: white; border-radius: 8px; border: 1px solid var(--gray-200); padding: 12px 14px; }
+  .s-card .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-400); margin-bottom: 4px; }
+  .s-card .val { font-size: 22px; font-weight: 700; color: var(--blue); }
+  .s-card .val.green { color: var(--green); }
+  .s-card .val.amber { color: var(--amber); }
+  .s-card .val.red { color: var(--red); }
+  .s-card .sub { font-size: 10px; color: var(--gray-400); margin-top: 2px; }
+
+  /* progress bar */
+  .prog-wrap { background: var(--gray-200); border-radius: 99px; height: 6px; margin-top: 6px; overflow: hidden; }
+  .prog-bar { height: 100%; border-radius: 99px; background: var(--blue); transition: width .4s; }
+  .prog-bar.green { background: var(--green); }
+  .prog-bar.amber { background: var(--amber); }
+  .prog-bar.red { background: var(--red); }
+
+  /* ── TABLE ── */
+  .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .table-controls h2 { font-size: 13px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.4px; }
+  .table-controls .actions { display: flex; gap: 6px; }
+  .table-outer { background: white; border-radius: 8px; border: 1px solid var(--gray-200); overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  thead tr th { background: var(--blue); color: white; padding: 6px 6px; text-align: center; font-size: 10px; font-weight: 600; white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.15); position: sticky; top: 0; z-index: 3; }
+  thead tr:nth-child(2) th { background: var(--blue-mid); }
+  th.col-n { width: 32px; min-width: 32px; }
+  th.col-act { min-width: 280px; max-width: 340px; text-align: left !important; }
+  th.col-resp { min-width: 160px; }
+  th.col-dir { min-width: 120px; }
+  th.col-freq { min-width: 78px; }
+  th.col-fecha { min-width: 88px; }
+  th.col-pr { width: 30px; min-width: 30px; }
+  th.col-tot { width: 52px; min-width: 52px; }
+  th.col-pct { width: 60px; min-width: 60px; }
+  th.col-obs { min-width: 170px; }
+
+  /* section row */
+  tr.section-row td { background: var(--blue-light); color: var(--blue); font-weight: 700; font-size: 11px; padding: 7px 10px; border-bottom: 1.5px solid var(--blue-mid); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* data rows */
+  tbody tr.data-row td { padding: 9px 8px; border-bottom: 1px solid var(--gray-200); border-right: 1px solid #f0f0f0; vertical-align: middle; }
+  tbody tr.data-row:hover td { background: var(--blue-pale); }
+  tbody tr.data-row:nth-child(even) td { background: var(--gray-50); }
+  tbody tr.data-row:nth-child(even):hover td { background: var(--blue-pale); }
+
+  td.td-n { text-align: center; font-weight: 600; color: var(--blue); font-size: 11px; }
+  td.td-act { font-size: 12.5px; white-space: normal; line-height: 1.45; }
+  td.td-center { text-align: center; font-size: 11.5px; color: var(--gray-600); }
+  td.td-freq { text-align: center; font-size: 11px; background: var(--blue-pale); color: var(--blue); }
+  td.td-p { text-align: center; background: #eef3fc; color: var(--blue); font-weight: 600; font-size: 11px; }
+  td.td-p.empty { background: #fafafa; color: var(--gray-400); }
+  td.td-r { text-align: center; }
+  td.td-total-plan { text-align: center; background: var(--blue-light); font-weight: 700; color: var(--blue); font-size: 11px; }
+  td.td-total-real { text-align: center; font-weight: 700; font-size: 11px; }
+  td.td-pct { text-align: center; font-weight: 700; font-size: 11px; }
+  td.td-pct.pct-0 { color: var(--red); }
+  td.td-pct.pct-low { color: var(--amber); }
+  td.td-pct.pct-ok { color: var(--green); }
+  td.td-obs { font-size: 11.5px; color: var(--gray-600); }
+  td.td-del { text-align: center; }
+
+  /* Pendientes */
+  .pend-area { display:inline-block; background: var(--blue-light); color: var(--blue); font-weight:600; font-size:11px; padding:2px 8px; border-radius:4px; }
+  .pend-meses { display:flex; flex-wrap:wrap; gap:4px; }
+  .pend-chip { display:inline-block; background:#fdebd8; color:var(--orange); font-weight:600; font-size:10.5px; padding:2px 7px; border-radius:4px; white-space:nowrap; }
+
+  /* inline edit */
+  .edit-input { width: 100%; border: none; background: transparent; font-size: 12.5px; line-height: 1.45; color: var(--gray-800); font-family: inherit; padding: 4px 5px; }
+  .edit-input:focus { outline: 1.5px solid var(--blue); border-radius: 3px; background: white; }
+  .edit-obs { width: 100%; min-width: 120px; }
+
+  /* checkbox */
+  input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--blue); cursor: pointer; }
+
+  /* ── DASHBOARD ── */
+  .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .dash-title { font-size: 18px; font-weight: 700; color: var(--blue); }
+  .dash-filters { display: flex; gap: 10px; align-items: center; }
+  .dash-select { padding: 6px 12px; border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 12px; color: var(--gray-800); background: white; }
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .dash-card { background: white; border-radius: 10px; border: 1px solid var(--gray-200); padding: 16px; }
+  .dash-card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-400); margin-bottom: 12px; }
+  .dash-card.full { grid-column: 1 / -1; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: white; border-radius: 10px; border: 1px solid var(--gray-200); padding: 14px 16px; }
+  .kpi .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-400); }
+  .kpi .val { font-size: 28px; font-weight: 800; color: var(--blue); margin: 4px 0 2px; }
+  .kpi .val.green { color: var(--green); }
+  .kpi .val.amber { color: var(--amber); }
+  .kpi .val.red { color: var(--red); }
+  .kpi .sub { font-size: 10px; color: var(--gray-400); }
+  .chart-wrap { position: relative; height: 220px; }
+  .tab-perf-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .tab-perf-table th { background: var(--gray-100); padding: 6px 10px; text-align: left; font-weight: 600; color: var(--gray-600); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .tab-perf-table td { padding: 7px 10px; border-bottom: 1px solid var(--gray-200); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-amber { background: #fef9c3; color: #a16207; }
+  .badge-red { background: #fee2e2; color: #b91c1c; }
+  .mini-bar-wrap { background: var(--gray-200); border-radius: 99px; height: 8px; flex: 1; overflow: hidden; }
+  .mini-bar { height: 100%; border-radius: 99px; background: var(--blue); }
+  .mini-bar.green { background: var(--green); }
+  .mini-bar.amber { background: var(--amber); }
+  .mini-bar.red { background: var(--red); }
+
+  /* ── INFORME ── */
+  #informe-content { display: none; padding: 24px 32px 48px; background: var(--gray-100); }
+  #informe-content.show { display: block; }
+  .informe-toolbar { display: flex; justify-content: space-between; align-items: center; max-width: 860px; margin: 0 auto 12px; gap: 12px; flex-wrap: wrap; }
+  .informe-title-bar { font-size: 14px; font-weight: 700; color: var(--blue); }
+  .informe-toolbar-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .informe-body { background: white; border-radius: 10px; border: 1px solid var(--gray-200); padding: 32px; max-width: 860px; margin: 0 auto; }
+
+  /* === FIRMAS === */
+  .firma-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 16px; }
+  .firma-box { padding: 16px 14px 22px; border: 1px solid var(--gray-200); border-radius: 8px; background: #fafbfc; }
+  .firma-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .firma-lbl { font-size: 10.5px; font-weight: 600; color: var(--gray-700); min-width: 52px; }
+  .firma-input { flex: 1; border: none; border-bottom: 1px solid var(--gray-300); background: transparent; padding: 4px 2px; font-size: 11px; font-family: inherit; outline: none; }
+  .firma-input:focus { border-bottom-color: var(--blue); }
+  .firma-line { border-top: 1px solid var(--gray-700); margin: 40px 12px 6px; }
+  .firma-cap { text-align: center; font-size: 10px; color: var(--gray-600); letter-spacing: 0.5px; text-transform: uppercase; }
+  .informe-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
+
+  @media print {
+    body { background: white !important; }
+    /* Ocultar TODO el body */
+    body > * { display: none !important; }
+    /* Mostrar SOLO el informe y dejarlo a página completa */
+    body > #informe-content.show { display: block !important; padding: 0 !important; background: white !important; }
+    /* Dentro del informe, ocultar toolbar y acciones */
+    .informe-toolbar, .informe-actions, #save-indicator { display: none !important; }
+    .informe-body { box-shadow: none !important; border: none !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    .firma-input { border-bottom: 1px solid #374151 !important; background: transparent !important; }
+    @page { margin: 18mm 15mm; }
+  }
+  .informe-logo { background: var(--blue); color: white; padding: 20px 24px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+  .informe-logo h2 { font-size: 18px; font-weight: 700; }
+  .informe-logo p { font-size: 11px; opacity: 0.75; margin-top: 3px; }
+  .informe-section { margin: 20px 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--blue); border-bottom: 2px solid var(--blue-light); padding-bottom: 4px; letter-spacing: 0.5px; }
+  .informe-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+  .informe-kpi { border: 1px solid var(--gray-200); border-radius: 6px; padding: 10px 12px; text-align: center; }
+  .informe-kpi .lbl { font-size: 9px; text-transform: uppercase; color: var(--gray-400); }
+  .informe-kpi .val { font-size: 22px; font-weight: 800; color: var(--blue); }
+  .informe-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 16px; }
+  .informe-table th { background: var(--blue); color: white; padding: 6px 10px; text-align: left; font-size: 10px; }
+  .informe-table td { padding: 6px 10px; border-bottom: 1px solid var(--gray-200); }
+  .informe-table tr:nth-child(even) td { background: var(--gray-50); }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 10px; padding: 24px; width: 480px; max-width: 95vw; }
+  .modal h3 { font-size: 15px; font-weight: 700; color: var(--blue); margin-bottom: 16px; }
+  .modal label { display: block; font-size: 11px; font-weight: 600; color: var(--gray-600); margin-bottom: 3px; margin-top: 10px; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: 7px 10px; border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 12px; font-family: inherit; }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--blue); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-badge">BAKELS</div>
+    <h1>Programa de Trabajo Preventivo</h1>
+  </div>
+  <div class="topbar-right">
+    <span id="save-indicator" style="font-size:11px;color:#15803d;opacity:0.55;transition:opacity .25s;font-weight:500;white-space:nowrap">Sin cambios</span>
+    <button class="btn btn-outline" onclick="exportJSON()">⬇ Exportar JSON</button>
+    <button class="btn btn-outline" onclick="exportCSV()">⬇ Exportar CSV</button>
+    <label class="btn btn-outline" style="cursor:pointer">⬆ Importar <input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+    <button class="btn btn-outline" onclick="clearLS()" style="color:#b91c1c;border-color:#fecaca" title="Borra todos los datos guardados">🗑 Limpiar</button>
+    <button class="btn btn-orange" onclick="generarInforme()">📄 Informe Gerencial</button>
+  </div>
+</div>
+
+<!-- TAB NAV -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(0)">0 · Dashboard</button>
+  <button class="tab-btn" onclick="switchTab(1)">1 · Política SST</button>
+  <button class="tab-btn" onclick="switchTab(2)">2 · Identificación y Control de Riesgos</button>
+  <button class="tab-btn" onclick="switchTab(3)">3 · Medidas de Control</button>
+  <button class="tab-btn" onclick="switchTab(4)">4 · Hábitos Saludables</button>
+  <button class="tab-btn" onclick="switchTab(5)">5 · Prevención Conducción</button>
+  <button class="tab-btn" onclick="switchTab(6)">6 · Capacitación</button>
+  <button class="tab-btn" onclick="switchTab(7)">7 · Medición y Monitoreo</button>
+  <button class="tab-btn" onclick="switchTab(8)" style="color:#ffd9b3">⚠ Pendientes</button>
+</div>
+
+<!-- ════════════════════════ TAB 0: DASHBOARD ════════════════════════ -->
+<div class="tab-content active page-pad" id="tab-0">
+  <div class="dash-header">
+    <div class="dash-title">Dashboard Gerencial · Bakels Chile</div>
+    <div class="dash-filters">
+      <select class="dash-select" id="dash-mode" onchange="renderDashboard()">
+        <option value="anual">Vista Anual (Global)</option>
+        <option value="mes">Vista por Mes</option>
+      </select>
+      <select class="dash-select" id="dash-mes" style="display:none" onchange="renderDashboard()">
+        <option value="0">Jun 25</option><option value="1">Jul 25</option>
+        <option value="2">Ago 25</option><option value="3">Sep 25</option>
+        <option value="4">Oct 25</option><option value="5">Nov 25</option>
+        <option value="6">Dic 25</option><option value="7">Ene 26</option>
+        <option value="8">Feb 26</option><option value="9">Mar 26</option>
+        <option value="10">Abr 26</option><option value="11">May 26</option>
+        <option value="12">Jun 26</option><option value="13">Jul 26</option>
+        <option value="14">Ago 26</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="dash-kpis"></div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>% Cumplimiento por Área</h3>
+      <div class="chart-wrap"><canvas id="chart-areas"></canvas></div>
+    </div>
+    <div class="dash-card">
+      <h3>Avance mensual (Planificado vs Realizado)</h3>
+      <div class="chart-wrap"><canvas id="chart-mensual"></canvas></div>
+    </div>
+    <div class="dash-card full">
+      <h3>Resumen por Pestaña</h3>
+      <table class="tab-perf-table" id="dash-tab-table"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ INFORME GERENCIAL (root level para impresión limpia) ════════════════════════ -->
+<div id="informe-content">
+  <div class="informe-toolbar">
+    <span class="informe-title-bar">Informe Gerencial</span>
+    <div class="informe-toolbar-controls">
+      <label style="font-size:11px;color:var(--gray-700);font-weight:600">Período:</label>
+      <select id="informe-periodo" class="dash-select" onchange="generarInforme()">
+        <option value="global">Global (Jun 25 – Ago 26)</option>
+        <option value="0">Junio 2025</option>
+        <option value="1">Julio 2025</option>
+        <option value="2">Agosto 2025</option>
+        <option value="3">Septiembre 2025</option>
+        <option value="4">Octubre 2025</option>
+        <option value="5">Noviembre 2025</option>
+        <option value="6">Diciembre 2025</option>
+        <option value="7">Enero 2026</option>
+        <option value="8">Febrero 2026</option>
+        <option value="9">Marzo 2026</option>
+        <option value="10">Abril 2026</option>
+        <option value="11">Mayo 2026</option>
+        <option value="12">Junio 2026</option>
+        <option value="13">Julio 2026</option>
+        <option value="14">Agosto 2026</option>
+      </select>
+      <button class="btn btn-outline" style="color:var(--blue);border-color:var(--blue)" onclick="window.print()">🖨 Imprimir / PDF</button>
+      <button class="btn btn-red" onclick="document.getElementById('informe-content').classList.remove('show')">✕ Cerrar</button>
+    </div>
+  </div>
+  <div class="informe-body" id="informe-body"></div>
+</div>
+
+<!-- ════════════════════════ TABS 1–7 ════════════════════════ -->
+<div class="tab-content page-pad" id="tab-1"></div>
+<div class="tab-content page-pad" id="tab-2"></div>
+<div class="tab-content page-pad" id="tab-3"></div>
+<div class="tab-content page-pad" id="tab-4"></div>
+<div class="tab-content page-pad" id="tab-5"></div>
+<div class="tab-content page-pad" id="tab-6"></div>
+<div class="tab-content page-pad" id="tab-7"></div>
+<div class="tab-content page-pad" id="tab-8"></div>
+
+<!-- MODAL AGREGAR ACTIVIDAD -->
+<div class="modal-overlay" id="modal-add">
+  <div class="modal">
+    <h3>Agregar Actividad</h3>
+    <label>Actividad</label>
+    <input type="text" id="m-act" placeholder="Nombre de la actividad">
+    <label>Responsable</label>
+    <input type="text" id="m-resp">
+    <label>Dirigido a</label>
+    <input type="text" id="m-dir">
+    <label>Frecuencia</label>
+    <select id="m-freq">
+      <option>Cada Vez</option><option>Mensual</option><option>Trimestral</option>
+      <option>Semestral</option><option>Anual</option><option>Semanal</option>
+    </select>
+    <label>Fecha Implementación</label>
+    <input type="text" id="m-fecha" placeholder="ej: 01-09-2025">
+    <label>Meses Planificados (marcar)</label>
+    <div id="m-meses" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" style="background:var(--gray-100);color:var(--gray-600)" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-white" style="background:var(--blue);color:white" onclick="confirmAdd()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const MESES = ['Jun 25','Jul 25','Ago 25','Sep 25','Oct 25','Nov 25','Dic 25','Ene 26','Feb 26','Mar 26','Abr 26','May 26','Jun 26','Jul 26','Ago 26'];
+const TAB_NAMES = ['','Política SST','Identificación y Control de Riesgos','Medidas de Control de Riesgos','Hábitos Saludables','Prevención en la Conducción','Capacitación','Medición y Monitoreo'];
+
+// p[i] = planned for month i (0=Jun25..14=Ago26), r[i] = realizado (bool)
+let DATA = {
+  1: {
+    section: 'POLÍTICA SST',
+    rows: [
+      { n:1, act:'Elaborar política SST', resp:'Gerencia / Depto. de Prevención', dir:'Todo el personal', freq:'Cada Vez', fecha:'Jun-25', p:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Difunde política SST', resp:'Depto. de Prevención', dir:'Todo el personal', freq:'Cada Vez', fecha:'01-08-2025', p:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Revisión política SST', resp:'Gerencia / Depto. de Prevención', dir:'Todo el personal', freq:'Anual', fecha:'*', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  2: {
+    section: 'IDENTIFICACIÓN Y EVALUACIÓN DE RIESGOS',
+    rows: [
+      { n:1, act:'Identificar y Evaluar Riesgos', resp:'Depto. de Prevención, Trabajadores, CPHS', dir:'Todo el personal', freq:'Cada Vez', fecha:'Jun-Jul 25', p:[0,1,0,0,0,0,0,0,0,0,0,0,0,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Revisión de Matriz por el Comité Paritario', resp:'Comité Paritario', dir:'Comité Paritario', freq:'Cada Vez', fecha:'01-09-2025', p:[0,0,0,1,0,0,0,0,0,0,0,0,1,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Difundir Matriz de Riesgos', resp:'Depto. PPRR, Supervisores, Jefes de Área', dir:'Todo el personal', freq:'Cada Vez', fecha:'Sep-Oct-25', p:[0,0,0,1,0,0,0,0,0,0,0,0,1,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:4, act:'Actualizar Matriz de Riesgos', resp:'Depto. de Prevención, Trabajadores, CPHS', dir:'Todo el personal', freq:'Cada Vez', fecha:'*', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  3: {
+    section: 'MEDIDAS DE CONTROL DE RIESGOS',
+    rows: [
+      { n:1, act:'Programa Preventivo MEHM – Res. Exenta N°341 ISP', resp:'Organismo Administrador', dir:'Planta, Bodega, Mantenimiento', freq:'Anual', fecha:'01-08-2026', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Implementación mejoramiento orden y limpieza (5S)', resp:'Roxana Román / Ing. de Procesos y Mejora Continua', dir:'Planta, Mantenimiento', freq:'Mensual', fecha:'01-08-2025', p:[0,0,1,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,true,true,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Evaluación ergonómica de puestos de trabajo', resp:'Depto. PPRR – OA', dir:'Todo el personal', freq:'Anual', fecha:'01-08-2026', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:4, act:'Entrega de kit ergonómico oficina', resp:'PPRR – OA', dir:'Homeoffice – Administrativo', freq:'Cada Vez', fecha:'Nov-25', p:[0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:5, act:'Verificación del protocolo PREXOR', resp:'Depto. PPRR – OA', dir:'Todo el personal', freq:'Trimestral', fecha:'01-01-2026', p:[0,0,0,0,0,0,0,1,0,0,0,0,0,0,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:6, act:'Plan de acción frente a trabajos en altura', resp:'Depto. PPRR', dir:'Personal planta y bodega con trabajos en altura', freq:'Anual', fecha:'01-10-2025', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:7, act:'Exámenes pre-ocupacionales / Ocupacionales', resp:'RRHH – Depto. PPRR', dir:'Todo el personal', freq:'Cada Vez', fecha:'01-08-2025', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:8, act:'Revisión/actualización Reglamento Interno de Higiene y Seguridad', resp:'RRHH – Depto. PPRR', dir:'Todo el personal', freq:'Cada Vez', fecha:'Sep-Oct 2025', p:[0,0,0,1,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:9, act:'Levantamiento de procedimientos/instructivos y actualización', resp:'Jefe de cada área', dir:'Todo el personal', freq:'Cada Vez', fecha:'', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:10, act:'Firma de instructivos y procedimientos', resp:'Jefes de área – Gerente Producción y Mantenimiento', dir:'Todo el personal', freq:'Cada Vez', fecha:'', p:[0,0,0,0,0,0,0,1,0,1,0,1,0,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:11, act:'Difusión y evaluación de procedimientos', resp:'Jefes de área – PPRR', dir:'Todo el personal', freq:'Cada Vez', fecha:'Jun-26', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:12, act:'Personalizado del Supervisor', resp:'Jefe de cada área', dir:'Jefe de cada área', freq:'Mensual', fecha:'Sept-25', p:[0,0,0,1,1,1,1,1,1,1,1,1,1,1,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:13, act:'Programa de liderazgo visible de la Gerencia', resp:'Director – Gerentes', dir:'Director – Gerentes', freq:'Trimestral', fecha:'01-09-2025', p:[0,0,0,1,1,1,1,1,1,1,1,1,1,1,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:14, act:'Programa de EPP', resp:'PPRR – Comité Paritario', dir:'Todo el personal', freq:'Cada Vez', fecha:'01-10-2025', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:15, act:'Implementación señalética y delimitación en Bodega', resp:'Gerente y Jefe de Supply Chain', dir:'Bodega', freq:'Anual', fecha:'Abr-26', p:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:16, act:'Implementación sistema de señalización en cámaras frigoríficas', resp:'Gerente y Jefe de Supply Chain', dir:'Bodega', freq:'Anual', fecha:'Nov-Dic 25', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:17, act:'Cambio de guantes anticorte de grado alimentario (estudio)', resp:'PPRR', dir:'Personal de planta con contacto directo con alimentos', freq:'Anual', fecha:'14-07-2025', p:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:18, act:'Implementación de medias anticompresión para Baking Centre', resp:'Gerencia Comercial', dir:'Personal Baking Centre', freq:'Cada Vez', fecha:'01-09-2025', p:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:19, act:'Revisión cumplimiento legal', resp:'PPRR', dir:'Todas las áreas', freq:'Anual', fecha:'01-08-2025', p:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[true,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:20, act:'Realización de Diagnóstico de Cultura Organizacional', resp:'Personal Aleatorio', dir:'Todas las áreas', freq:'Anual', fecha:'Dic-25', p:[0,0,0,0,0,0,1,1,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,true,true,false,false,false,false,false,false,false], obs:'' },
+      { n:21, act:'Actualización del PGRD', resp:'Depto. HSE', dir:'Todas las áreas', freq:'Anual', fecha:'Marzo-Abril-26', p:[0,0,0,0,0,0,0,0,0,1,0,1,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:22, act:'Simulacro de emergencias (por áreas y general)', resp:'Todo el personal', dir:'Todas las áreas', freq:'Semestral', fecha:'Jul-26', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:23, act:'Programa de inspección y mantenimiento de equipos críticos', resp:'Mantenimiento', dir:'Planta', freq:'Mensual', fecha:'Oct-25', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:24, act:'Cierre y señalización de sector molino con cadenas para trabajos de izaje', resp:'Producción – Mantenimiento', dir:'Planta', freq:'Cada Vez', fecha:'01-09-2025', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:25, act:'Programa Inspecciones de plataformas, barandas, etc.', resp:'Mantenimiento – Producción – Bodega', dir:'Todas las áreas', freq:'Semestral', fecha:'01-10-2025', p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:26, act:'Revisión de señalética y vías de evacuación', resp:'Mantenimiento – Producción – Bodega', dir:'Todas las áreas', freq:'Semestral', fecha:'01-12-2025', p:[0,0,0,0,0,0,1,0,0,0,0,0,1,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:27, act:'Programa de Inspección de Rack de Bodega', resp:'Bodega – Mantenimiento', dir:'Bodega', freq:'Semestral', fecha:'01-10-2025', p:[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:28, act:'Señalizar peldaños de escaleras', resp:'Mantenimiento', dir:'Todas las áreas', freq:'Cada Vez', fecha:'01-09-2025', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:29, act:'Proyecto glucosa', resp:'Mantenimiento – Producción', dir:'Producción', freq:'', fecha:'Sep-Dic 25', p:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  4: {
+    section: 'HÁBITOS SALUDABLES',
+    rows: [
+      { n:1, act:'Programa de AYD', resp:'PPRR – RRHH', dir:'Todo el personal', freq:'Mensual', fecha:'01-11-2025', p:[0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Pausas activas área productiva', resp:'PPRR', dir:'Bodega – Producción', freq:'Semanal', fecha:'Implementado', p:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Entrega de frutas 1 vez a la semana para consumo', resp:'PPRR – RRHH', dir:'Todas las áreas', freq:'Semanal', fecha:'Implementado', p:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  5: {
+    section: 'PREVENCIÓN EN LA CONDUCCIÓN DE VEHÍCULOS MOTORIZADOS',
+    rows: [
+      { n:1, act:'Elaborar procedimiento de conducción', resp:'PPRR', dir:'Operadores de equipos', freq:'Cada Vez', fecha:'01-10-2025', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Realizar capacitación de seguridad vial interna', resp:'PPRR – OA', dir:'Todo el personal', freq:'Cada Vez', fecha:'01-11-2025', p:[0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Psicosensotécnico obligatorio para personal que opera equipos', resp:'RRHH', dir:'Operadores de equipos', freq:'Cada Vez', fecha:'01-11-2026', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:4, act:'IRL de operador de grúa', resp:'PPRR', dir:'Operadores de equipos', freq:'Cada Vez', fecha:'01-09-2025', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  6: {
+    section: 'CAPACITACIÓN DE PERSONAS TRABAJADORAS',
+    rows: [
+      { n:1, act:'Capacitación curso 8 hrs DS 44', resp:'Organismo Administrador', dir:'Todo el personal', freq:'Cada Vez', fecha:'Ago-Sep 25', p:[0,0,1,1,0,0,0,0,0,0,0,0,0,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'IRL', resp:'PPRR', dir:'Todo el personal', freq:'Cada Vez', fecha:'Actualización', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Capacitación en trabajo en altura', resp:'PPRR – CPHS', dir:'Personal que realiza trabajos en altura', freq:'Anual', fecha:'Nov-25', p:[0,0,0,0,0,1,0,0,1,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:4, act:'Uso de EPP, cuidado y mantención de EPP', resp:'PPRR o OA', dir:'Todo el personal', freq:'Anual', fecha:'Oct-25', p:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:5, act:'Manejo de SUSPE – RESPE', resp:'PPRR – Calidad', dir:'Todo el personal', freq:'Anual', fecha:'Marzo-Abril 25', p:[0,0,0,0,0,0,0,0,0,1,0,1,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:6, act:'Ergonomía en oficina', resp:'OA – PPRR', dir:'Personas trabajadoras administrativos y home office', freq:'Anual', fecha:'01-09-2025', p:[0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:7, act:'Difusión Protocolo TMERT', resp:'PPRR – OA', dir:'Todo el personal de planta, bodega, mantenimiento y oficina', freq:'Anual', fecha:'01-10-2025', p:[0,0,0,0,0,0,1,0,0,0,1,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:8, act:'Capacitación Manejo Manual de Carga', resp:'PPRR – OA', dir:'Todo el personal de planta, bodega y mantenimiento', freq:'Anual', fecha:'Nov 25 – May 26', p:[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:9, act:'Capacitación Protocolo Radiación UV', resp:'PPRR', dir:'Todo el personal', freq:'Anual', fecha:'Sept-26', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:10, act:'Difusión Protocolo Riesgos Psicosociales', resp:'PPRR – OA – RRHH', dir:'Todo el personal', freq:'Anual', fecha:'1er Semestre', p:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:11, act:'Difusión Protocolo PREXOR', resp:'PPRR – OA', dir:'Todo el personal expuesto', freq:'Anual', fecha:'01-01-2026', p:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:12, act:'Capacitación responsabilidad civil y penal', resp:'OA – OTEC', dir:'Supervisión – Gerencia', freq:'Cada Vez', fecha:'2do Sem 26', p:[0,0,0,0,0,0,0,0,0,0,0,0,0,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:13, act:'Capacitación seguridad en uso de traspaleta', resp:'OA – Prevención de Riesgos', dir:'Operadores planta – Operadores bodega', freq:'Anual', fecha:'01-09-2025', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:14, act:'Difusión: Prevención y trato del acoso sexual, laboral y violencia en el trabajo', resp:'RRHH', dir:'Todo el personal', freq:'Cada Vez', fecha:'01-01-2026', p:[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:15, act:'Prevención de quemaduras y manipulación de calor', resp:'PPRR – OA', dir:'Personal Baking – Laboratorio – Demostradores', freq:'Anual', fecha:'01-01-2026', p:[0,0,0,0,0,0,0,0,0,1,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:16, act:'Curso Comité Paritario DS44', resp:'Organismo Administrador', dir:'Comité Paritario', freq:'Cada Vez', fecha:'Dic-25', p:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:17, act:'Capacitación uso de extintores', resp:'PPRR – OA', dir:'Todo el personal', freq:'Anual', fecha:'01-03-2026', p:[0,0,0,0,0,0,0,0,1,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:18, act:'Capacitación primeros auxilios', resp:'PPRR – OA', dir:'Todo el personal', freq:'Anual', fecha:'01-04-2026', p:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:19, act:'Capacitación líderes de emergencias', resp:'PPRR', dir:'Encargados de emergencias', freq:'Anual', fecha:'01-02-2026', p:[0,0,0,0,0,0,0,1,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:20, act:'Capacitación investigación de accidentes', resp:'PPRR – OA', dir:'PPRR – CPHS – Comité de Investigación', freq:'Cada Vez', fecha:'May-26', p:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:21, act:'Capacitación Orden y Aseo', resp:'Supervisores – Jefes de Área', dir:'Todo el personal', freq:'Anual', fecha:'01-11-2025', p:[0,0,0,0,0,1,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  },
+  7: {
+    section: 'MEDICIÓN, MONITOREO DEL DESEMPEÑO Y REVISIÓN',
+    rows: [
+      { n:1, act:'Entrega de copia del Plan a CPHS', resp:'PPRR', dir:'CPHS', freq:'Anual', fecha:'01-09-2025', p:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:2, act:'Seguimiento del cumplimiento del programa mediante Comité Paritario', resp:'PPRR', dir:'CPHS', freq:'Anual', fecha:'01-05-2026', p:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:3, act:'Difusión de Programa de Prevención a personas trabajadoras', resp:'PPRR', dir:'CPHS', freq:'Anual', fecha:'Sept-25', p:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:4, act:'Realizar medición del avance del programa a la Gerencia', resp:'PPRR', dir:'Gerencia', freq:'Mensual', fecha:'', p:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:5, act:'Pre auditoría', resp:'PPRR', dir:'Gerencia', freq:'Anual', fecha:'May-26', p:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+      { n:6, act:'Auditoría', resp:'PPRR', dir:'Gerencia', freq:'Anual', fecha:'Jun-26', p:[0,0,0,0,0,0,0,0,0,0,0,0,1,1,0], r:[false,false,false,false,false,false,false,false,false,false,false,false,false,false,false], obs:'' },
+    ]
+  }
+};
+
+let currentAddTab = 1;
+let chartAreas = null, chartMensual = null;
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function calcRow(row) {
+  const totalPlan = row.p.reduce((a,b)=>a+b, 0);
+  const totalReal = row.r.filter((v,i)=> v && row.p[i] > 0).length;
+  const pct = totalPlan === 0 ? null : Math.round((totalReal / totalPlan) * 100);
+  return { totalPlan, totalReal, pct };
+}
+
+function calcTab(tabId) {
+  const rows = DATA[tabId].rows;
+  let plan = 0, real = 0;
+  rows.forEach(r => {
+    const c = calcRow(r);
+    plan += c.totalPlan;
+    real += c.totalReal;
+  });
+  const pct = plan === 0 ? null : Math.round((real/plan)*100);
+  return { plan, real, pct, count: rows.length };
+}
+
+function calcGlobal() {
+  let plan=0, real=0, count=0;
+  for(let t=1;t<=7;t++) {
+    const c = calcTab(t);
+    plan += c.plan; real += c.real; count += c.count;
+  }
+  const pct = plan===0 ? null : Math.round((real/plan)*100);
+  return { plan, real, pct, count };
+}
+
+function calcMes(mesIdx) {
+  let plan=0, real=0;
+  for(let t=1;t<=7;t++) {
+    DATA[t].rows.forEach(row => {
+      plan += row.p[mesIdx] || 0;
+      if(row.r[mesIdx] && row.p[mesIdx] > 0) real += 1;
+    });
+  }
+  const pct = plan===0 ? null : Math.round((real/plan)*100);
+  return { plan, real, pct };
+}
+
+function pctClass(pct) {
+  if(pct === null) return '';
+  if(pct === 0) return 'pct-0';
+  if(pct < 70) return 'pct-low';
+  return 'pct-ok';
+}
+
+function badgeClass(pct) {
+  if(pct === null || pct === 0) return 'badge-red';
+  if(pct < 70) return 'badge-amber';
+  return 'badge-green';
+}
+
+function barClass(pct) {
+  if(pct === null || pct < 40) return 'red';
+  if(pct < 70) return 'amber';
+  return 'green';
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+function switchTab(idx) {
+  document.querySelectorAll('.tab-content').forEach((el,i) => el.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-btn').forEach((el,i) => el.classList.toggle('active', i===idx));
+  if(idx === 0) renderDashboard();
+  if(idx === 8) renderPendientes();
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TABLES
+// ═══════════════════════════════════════════════════════════
+function renderAll() {
+  for(let t=1;t<=7;t++) renderTab(t);
+  renderDashboard();
+}
+
+function renderTab(tabId) {
+  const container = document.getElementById(`tab-${tabId}`);
+  const data = DATA[tabId];
+  const global = calcTab(tabId);
+
+  // summary bar
+  const pct = global.pct ?? 0;
+  const pc = pct >= 70 ? 'green' : pct > 0 ? 'amber' : '';
+  const bc = barClass(pct);
+
+  let html = `
+  <div class="summary-bar">
+    <div class="s-card"><div class="lbl">Actividades</div><div class="val">${global.count}</div></div>
+    <div class="s-card"><div class="lbl">Total Planificado</div><div class="val">${global.plan}</div></div>
+    <div class="s-card"><div class="lbl">Total Realizado</div><div class="val ${pc}">${global.real}</div></div>
+    <div class="s-card"><div class="lbl">% Cumplimiento</div><div class="val ${pc}">${global.pct ?? 'N/A'}%</div><div class="prog-wrap"><div class="prog-bar ${bc}" style="width:${pct}%"></div></div></div>
+    <div class="s-card" style="display:flex;flex-direction:column;justify-content:center">
+      <button class="btn btn-green" onclick="openModal(${tabId})">+ Agregar Actividad</button>
+    </div>
+  </div>
+  <div class="table-controls">
+    <h2>${TAB_NAMES[tabId]}</h2>
+  </div>
+  <div class="table-outer">
+    <div class="table-scroll">
+      <table id="tbl-${tabId}">
+        <thead>
+          <tr>
+            <th class="col-n" rowspan="2">N°</th>
+            <th class="col-act" rowspan="2" style="text-align:left">Actividad</th>
+            <th class="col-resp" rowspan="2">Responsable</th>
+            <th class="col-dir" rowspan="2">Dirigido a</th>
+            <th class="col-freq" rowspan="2">Frecuencia</th>
+            <th class="col-fecha" rowspan="2">Fecha Impl.</th>
+            ${MESES.map(m=>`<th colspan="2">${m}</th>`).join('')}
+            <th class="col-tot" rowspan="2">Total Plan</th>
+            <th class="col-tot" rowspan="2">Total Real.</th>
+            <th class="col-pct" rowspan="2">% Cump.</th>
+            <th class="col-obs" rowspan="2">Observaciones</th>
+            <th rowspan="2" style="width:36px">✕</th>
+          </tr>
+          <tr>
+            ${MESES.map(()=>'<th class="col-pr">P</th><th class="col-pr">R</th>').join('')}
+          </tr>
+        </thead>
+        <tbody id="tbody-${tabId}">
+          <tr class="section-row"><td colspan="100">${data.section}</td></tr>
+          ${data.rows.map((row,ri) => renderRow(tabId, ri, row)).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+  updateTabSummary(tabId);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PENDIENTES — lo planificado y aún no realizado
+// ═══════════════════════════════════════════════════════════
+function renderPendientes() {
+  const cont = document.getElementById('tab-8');
+  const selVal = (document.getElementById('pend-mes') || {}).value ?? 'all';
+  const filtroMi = selVal === 'all' ? null : parseInt(selVal);
+
+  let filas = [];
+  let totalPend = 0;
+  for(let t=1;t<=7;t++) {
+    DATA[t].rows.forEach((row, ri) => {
+      // meses pendientes = planificado y no realizado
+      const meses = [];
+      MESES.forEach((m, mi) => {
+        if(filtroMi !== null && mi !== filtroMi) return;
+        if(row.p[mi] > 0 && !row.r[mi]) meses.push(m);
+      });
+      if(meses.length > 0) {
+        totalPend += meses.length;
+        filas.push({ t, ri, row, meses });
+      }
+    });
+  }
+
+  const opciones = ['<option value="all">Todos los meses</option>']
+    .concat(MESES.map((m,i)=>`<option value="${i}" ${filtroMi===i?'selected':''}>${m}</option>`)).join('');
+
+  let cuerpo;
+  if(filas.length === 0) {
+    cuerpo = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--green);font-weight:600;font-size:14px">✓ No hay actividades pendientes${filtroMi!==null?' en '+MESES[filtroMi]:''}.</td></tr>`;
+  } else {
+    cuerpo = filas.map(f => `
+      <tr class="data-row">
+        <td class="td-center" style="white-space:nowrap"><span class="pend-area">${TAB_NAMES[f.t]}</span></td>
+        <td class="td-n">${f.row.n}</td>
+        <td class="td-act">${escHtml(f.row.act)}</td>
+        <td class="td-obs">${escHtml(f.row.resp||'—')}</td>
+        <td style="font-size:11.5px"><div class="pend-meses">${f.meses.map(m=>`<span class="pend-chip">${m}</span>`).join('')}</div></td>
+        <td class="td-center" style="font-weight:700;color:var(--orange)">${f.meses.length}</td>
+      </tr>`).join('');
+  }
+
+  cont.innerHTML = `
+  <div class="summary-bar">
+    <div class="s-card"><div class="lbl">Actividades con pendientes</div><div class="val" style="color:var(--orange)">${filas.length}</div></div>
+    <div class="s-card"><div class="lbl">Total acciones pendientes</div><div class="val" style="color:var(--orange)">${totalPend}</div></div>
+    <div class="s-card" style="display:flex;flex-direction:column;justify-content:center">
+      <label style="font-size:10px;color:var(--gray-600);font-weight:600;margin-bottom:4px">Filtrar por mes</label>
+      <select class="dash-select" id="pend-mes" onchange="renderPendientes()">${opciones}</select>
+    </div>
+  </div>
+  <div class="table-controls">
+    <h2>Actividades Pendientes ${filtroMi!==null?'· '+MESES[filtroMi]:'(planificadas y no realizadas)'}</h2>
+  </div>
+  <div class="table-outer">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-resp" style="text-align:left">Área</th>
+            <th class="col-n">N°</th>
+            <th class="col-act" style="text-align:left">Actividad</th>
+            <th class="col-resp" style="text-align:left">Responsable</th>
+            <th style="text-align:left;min-width:220px">Meses pendientes</th>
+            <th class="col-tot">Cant.</th>
+          </tr>
+        </thead>
+        <tbody>${cuerpo}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderRow(tabId, ri, row) {
+  const {totalPlan, totalReal, pct} = calcRow(row);
+  const pc = pctClass(pct);
+  const pctStr = pct === null ? 'N/A' : `${pct}%`;
+
+  const months = MESES.map((m,mi) => {
+    const hasP = row.p[mi] > 0;
+    return `
+      <td class="td-p ${hasP?'':'empty'}"><input type="checkbox" ${hasP?'checked':''} title="Planificado ${MESES[mi]}" onchange="toggleP(${tabId},${ri},${mi},this.checked)" style="accent-color:#1a4a9e"></td>
+      <td class="td-r"><input type="checkbox" ${row.r[mi]?'checked':''} title="Realizada ${MESES[mi]}" onchange="toggleR(${tabId},${ri},${mi},this.checked)"></td>`;
+  }).join('');
+
+  return `<tr class="data-row" id="row-${tabId}-${ri}">
+    <td class="td-n">${row.n}</td>
+    <td class="td-act"><input class="edit-input" value="${escHtml(row.act)}" onchange="editField(${tabId},${ri},'act',this.value)"></td>
+    <td class="td-center"><input class="edit-input" value="${escHtml(row.resp)}" onchange="editField(${tabId},${ri},'resp',this.value)"></td>
+    <td class="td-center"><input class="edit-input" value="${escHtml(row.dir)}" onchange="editField(${tabId},${ri},'dir',this.value)"></td>
+    <td class="td-freq"><input class="edit-input" value="${escHtml(row.freq)}" onchange="editField(${tabId},${ri},'freq',this.value)" style="text-align:center"></td>
+    <td class="td-center"><input class="edit-input" value="${escHtml(row.fecha)}" onchange="editField(${tabId},${ri},'fecha',this.value)" style="text-align:center"></td>
+    ${months}
+    <td class="td-total-plan">${totalPlan}</td>
+    <td class="td-total-real">${totalReal}</td>
+    <td class="td-pct ${pc}">${pctStr}</td>
+    <td class="td-obs"><input class="edit-input edit-obs" value="${escHtml(row.obs)}" onchange="editField(${tabId},${ri},'obs',this.value)"></td>
+    <td class="td-del"><button class="btn btn-red" onclick="deleteRow(${tabId},${ri})">✕</button></td>
+  </tr>`;
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PERSISTENCIA LOCALSTORAGE
+// ═══════════════════════════════════════════════════════════
+const LS_KEY = 'bakels_programa_preventivo_v1';
+let saveTimer = null;
+
+function saveLS() {
+  // debounce 400 ms para no escribir en cada tecla
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(DATA));
+      flashSaved();
+    } catch(e) {
+      console.error('Error guardando en localStorage:', e);
+    }
+  }, 400);
+}
+
+function loadLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === 'object' && parsed[1] && parsed[1].rows) {
+      DATA = parsed;
+      return true;
+    }
+  } catch(e) {
+    console.error('Error cargando localStorage:', e);
+  }
+  return false;
+}
+
+function clearLS() {
+  if(!confirm('¿Borrar todos los datos guardados y volver al estado inicial? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(LS_KEY);
+  location.reload();
+}
+
+function flashSaved() {
+  const ind = document.getElementById('save-indicator');
+  if(!ind) return;
+  ind.textContent = '✓ Guardado ' + new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  ind.style.opacity = '1';
+  clearTimeout(flashSaved._t);
+  flashSaved._t = setTimeout(()=>{ ind.style.opacity = '0.55'; }, 1500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════════
+function toggleP(tabId, ri, mi, val) {
+  DATA[tabId].rows[ri].p[mi] = val ? 1 : 0;
+  const tr = document.getElementById(`row-${tabId}-${ri}`);
+  if(tr) {
+    const checks = tr.querySelectorAll('input[type=checkbox]');
+    const pCell = checks[mi*2].closest('td');
+    if(pCell) pCell.className = val ? 'td-p' : 'td-p empty';
+  }
+  updateRow(tabId, ri);
+  updateTabSummary(tabId);
+  saveLS();
+}
+
+function toggleR(tabId, ri, mi, val) {
+  DATA[tabId].rows[ri].r[mi] = val;
+  updateRow(tabId, ri);
+  updateTabSummary(tabId);
+  saveLS();
+}
+
+function editField(tabId, ri, field, val) {
+  DATA[tabId].rows[ri][field] = val;
+  saveLS();
+}
+
+function updateRow(tabId, ri) {
+  const row = DATA[tabId].rows[ri];
+  const {totalPlan, totalReal, pct} = calcRow(row);
+  const tr = document.getElementById(`row-${tabId}-${ri}`);
+  if(!tr) return;
+  const cells = tr.querySelectorAll('td');
+  // find total cols (after 6 fixed + 30 month cols = 36 offset)
+  const base = 6 + 30;
+  cells[base].textContent = totalPlan;
+  cells[base+1].textContent = totalReal;
+  const pctCell = cells[base+2];
+  pctCell.textContent = pct === null ? 'N/A' : `${pct}%`;
+  pctCell.className = `td-pct ${pctClass(pct)}`;
+}
+
+function updateTabSummary(tabId) {
+  const c = calcTab(tabId);
+  const pct = c.pct ?? 0;
+  const pc = pct >= 70 ? 'green' : pct > 0 ? 'amber' : '';
+  const bc = barClass(pct);
+  const tab = document.getElementById(`tab-${tabId}`);
+  if(!tab) return;
+  const vals = tab.querySelectorAll('.s-card .val');
+  if(vals.length >= 4) {
+    vals[1].textContent = c.plan;
+    vals[2].textContent = c.real;
+    vals[2].className = `val ${pc}`;
+    vals[3].textContent = `${c.pct ?? 'N/A'}%`;
+    vals[3].className = `val ${pc}`;
+    const bar = tab.querySelector('.prog-bar');
+    if(bar) { bar.style.width = `${pct}%`; bar.className = `prog-bar ${bc}`; }
+  }
+}
+
+function deleteRow(tabId, ri) {
+  if(!confirm('¿Eliminar esta actividad?')) return;
+  DATA[tabId].rows.splice(ri, 1);
+  DATA[tabId].rows.forEach((r,i) => r.n = i+1);
+  renderTab(tabId);
+  saveLS();
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODAL AGREGAR
+// ═══════════════════════════════════════════════════════════
+function openModal(tabId) {
+  currentAddTab = tabId;
+  const div = document.getElementById('m-meses');
+  div.innerHTML = MESES.map((m,i)=>`
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:400">
+      <input type="checkbox" data-mi="${i}"> ${m}
+    </label>`).join('');
+  document.getElementById('m-act').value = '';
+  document.getElementById('m-resp').value = '';
+  document.getElementById('m-dir').value = '';
+  document.getElementById('m-fecha').value = '';
+  document.getElementById('modal-add').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-add').classList.remove('open');
+}
+
+function confirmAdd() {
+  const act = document.getElementById('m-act').value.trim();
+  if(!act) { alert('Ingresa el nombre de la actividad'); return; }
+  const p = Array(15).fill(0);
+  document.querySelectorAll('#m-meses input[type=checkbox]').forEach(cb => {
+    if(cb.checked) p[parseInt(cb.dataset.mi)] = 1;
+  });
+  const rows = DATA[currentAddTab].rows;
+  rows.push({
+    n: rows.length + 1,
+    act,
+    resp: document.getElementById('m-resp').value,
+    dir: document.getElementById('m-dir').value,
+    freq: document.getElementById('m-freq').value,
+    fecha: document.getElementById('m-fecha').value,
+    p, r: Array(15).fill(false), obs: ''
+  });
+  closeModal();
+  renderTab(currentAddTab);
+  saveLS();
+}
+
+// ═══════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const mode = document.getElementById('dash-mode').value;
+  document.getElementById('dash-mes').style.display = mode==='mes' ? '' : 'none';
+
+  // KPIs
+  const g = calcGlobal();
+  const pct = g.pct ?? 0;
+  const kpiDiv = document.getElementById('dash-kpis');
+  kpiDiv.innerHTML = `
+    <div class="kpi"><div class="lbl">Actividades Totales</div><div class="val">${g.count}</div><div class="sub">en 7 áreas</div></div>
+    <div class="kpi"><div class="lbl">Total Planificado</div><div class="val">${g.plan}</div><div class="sub">acciones en el período</div></div>
+    <div class="kpi"><div class="lbl">Total Realizado</div><div class="val ${pct>=70?'green':pct>0?'amber':'red'}">${g.real}</div><div class="sub">acciones completadas</div></div>
+    <div class="kpi"><div class="lbl">% Cumplimiento Global</div><div class="val ${pct>=70?'green':pct>0?'amber':'red'}">${pct}%</div><div class="sub">Jun 25 – Ago 26</div></div>`;
+
+  // Chart: por área
+  const labels = [];
+  const planData = [];
+  const realData = [];
+  const pctData = [];
+  for(let t=1;t<=7;t++) {
+    const c = calcTab(t);
+    labels.push(TAB_NAMES[t].split(' ').slice(0,3).join(' '));
+    planData.push(c.plan);
+    realData.push(c.real);
+    pctData.push(c.pct ?? 0);
+  }
+
+  if(chartAreas) chartAreas.destroy();
+  chartAreas = new Chart(document.getElementById('chart-areas'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Planificado', data: planData, backgroundColor: '#b5c9e8' },
+        { label:'Realizado', data: realData, backgroundColor: '#003087' }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{font:{size:10}}}}, scales:{x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}} }
+  });
+
+  // Chart: mensual
+  if(chartMensual) chartMensual.destroy();
+  const mesP = MESES.map((_,mi) => {
+    let s=0; for(let t=1;t<=7;t++) DATA[t].rows.forEach(r=>s+=r.p[mi]||0); return s;
+  });
+  const mesR = MESES.map((_,mi) => {
+    let s=0; for(let t=1;t<=7;t++) DATA[t].rows.forEach(r=>{ if(r.r[mi]&&r.p[mi]>0)s++; }); return s;
+  });
+
+  chartMensual = new Chart(document.getElementById('chart-mensual'), {
+    type: 'line',
+    data: {
+      labels: MESES,
+      datasets: [
+        { label:'Planificado', data:mesP, borderColor:'#b5c9e8', backgroundColor:'rgba(181,201,232,0.15)', tension:.3 },
+        { label:'Realizado', data:mesR, borderColor:'#003087', backgroundColor:'rgba(0,48,135,0.1)', tension:.3, fill:true }
+      ]
+    },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{font:{size:10}}}}, scales:{x:{ticks:{font:{size:9},maxRotation:45}},y:{ticks:{font:{size:10}}}} }
+  });
+
+  // Tab performance table
+  const tt = document.getElementById('dash-tab-table');
+  tt.innerHTML = `<thead><tr><th>Área / Pestaña</th><th>Actividades</th><th>Plan</th><th>Realizado</th><th>Avance</th><th>Estado</th></tr></thead>
+  <tbody>${[1,2,3,4,5,6,7].map(t=>{
+    const c = calcTab(t);
+    const pct = c.pct ?? 0;
+    const bc = barClass(pct);
+    return `<tr>
+      <td style="font-weight:600;color:var(--blue)">${TAB_NAMES[t]}</td>
+      <td style="text-align:center">${c.count}</td>
+      <td style="text-align:center">${c.plan}</td>
+      <td style="text-align:center">${c.real}</td>
+      <td style="min-width:120px"><div style="display:flex;align-items:center;gap:8px">
+        <div class="mini-bar-wrap"><div class="mini-bar ${bc}" style="width:${pct}%"></div></div>
+        <span style="font-size:11px;font-weight:700;color:var(--gray-600);min-width:35px">${pct}%</span>
+      </div></td>
+      <td><span class="badge ${badgeClass(c.pct)}">${pct===100?'Completo':pct>=70?'En curso':pct>0?'Parcial':'Pendiente'}</span></td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// INFORME GERENCIAL
+// ═══════════════════════════════════════════════════════════
+// Cálculos filtrados por mes específico (mi = índice 0..14) o global (mi=null)
+function calcRowMes(row, mi) {
+  if(mi === null) return calcRow(row);
+  const plan = row.p[mi] || 0;
+  const real = (plan > 0 && row.r[mi]) ? 1 : 0;
+  const pct = plan === 0 ? null : Math.round((real/plan)*100);
+  return { totalPlan: plan, totalReal: real, pct };
+}
+function calcTabMes(tabId, mi) {
+  if(mi === null) return calcTab(tabId);
+  const rows = DATA[tabId].rows;
+  let plan = 0, real = 0, activas = 0;
+  rows.forEach(r => {
+    const c = calcRowMes(r, mi);
+    plan += c.totalPlan;
+    real += c.totalReal;
+    if(c.totalPlan > 0) activas++;
+  });
+  const pct = plan === 0 ? null : Math.round((real/plan)*100);
+  return { plan, real, pct, count: activas };
+}
+function calcGlobalMes(mi) {
+  if(mi === null) return calcGlobal();
+  let plan=0, real=0, count=0;
+  for(let t=1;t<=7;t++) {
+    const c = calcTabMes(t, mi);
+    plan += c.plan; real += c.real; count += c.count;
+  }
+  const pct = plan === 0 ? null : Math.round((real/plan)*100);
+  return { plan, real, pct, count };
+}
+
+function generarInforme() {
+  switchTab(0);
+  // Leer período del selector (si existe; si no, global)
+  const sel = document.getElementById('informe-periodo');
+  const raw = sel ? sel.value : 'global';
+  const mi = raw === 'global' ? null : parseInt(raw);
+  const periodoTxt = mi === null ? 'período Jun 2025 – Ago 2026' : `mes de ${MESES[mi]}`;
+  const periodoCorto = mi === null ? 'Jun 2025 – Ago 2026' : MESES[mi];
+
+  const g = calcGlobalMes(mi);
+  const pct = g.pct ?? 0;
+  const fecha = new Date().toLocaleDateString('es-CL', {day:'2-digit',month:'long',year:'numeric'});
+
+  const tabRows = [1,2,3,4,5,6,7].map(t => {
+    const c = calcTabMes(t, mi);
+    const p = c.pct ?? 0;
+    const est = c.plan===0 ? 'Sin actividad' : p===100?'Completo':p>=70?'En curso':p>0?'Parcial':'Pendiente';
+    return `<tr>
+      <td>${TAB_NAMES[t]}</td>
+      <td style="text-align:center">${c.count}</td>
+      <td style="text-align:center">${c.plan}</td>
+      <td style="text-align:center">${c.real}</td>
+      <td style="text-align:center;font-weight:700">${c.plan===0?'—':p+'%'}</td>
+      <td>${est}</td>
+    </tr>`;
+  }).join('');
+
+  // Observación contextual al período
+  const obsTxt = mi === null
+    ? `Las actividades con 0% de cumplimiento corresponden en su mayoría a acciones proyectadas para fechas futuras dentro del período. Se recomienda mantener seguimiento mensual con el CPHS y actualizar el estado de avance en el sistema.`
+    : `El presente informe corresponde exclusivamente a las actividades planificadas para ${MESES[mi]}. Las áreas marcadas como "Sin actividad" no tienen acciones planificadas para este mes.`;
+
+  // Resumen ejecutivo contextual
+  const resumenTxt = mi === null
+    ? `El presente informe resume el estado de avance del Programa de Trabajo Preventivo de Bakels Chile para el período junio 2025 – agosto 2026. Se han planificado <strong>${g.plan}</strong> acciones preventivas distribuidas en <strong>7 áreas de gestión</strong>, con un cumplimiento actual de <strong>${pct}%</strong> (${g.real} de ${g.plan} acciones realizadas).`
+    : `El presente informe resume el estado de avance del Programa de Trabajo Preventivo de Bakels Chile para el <strong>mes de ${MESES[mi]}</strong>. Se planificaron <strong>${g.plan}</strong> acciones preventivas en <strong>${g.count}</strong> áreas activas, con un cumplimiento de <strong>${pct}%</strong> (${g.real} de ${g.plan} acciones realizadas).`;
+
+  document.getElementById('informe-body').innerHTML = `
+    <div class="informe-logo">
+      <div><h2>Informe Gerencial – Programa de Trabajo Preventivo</h2><p>Bakels Chile · Generado el ${fecha}</p></div>
+      <div style="font-size:11px;opacity:0.75;text-align:right">${periodoCorto}<br>Depto. Prevención de Riesgos</div>
+    </div>
+    <div style="padding:24px">
+      <div class="informe-section">Resumen Ejecutivo · ${periodoCorto}</div>
+      <div class="informe-kpi-row">
+        <div class="informe-kpi"><div class="lbl">${mi===null?'Actividades':'Áreas activas'}</div><div class="val">${g.count}</div></div>
+        <div class="informe-kpi"><div class="lbl">Planificado</div><div class="val">${g.plan}</div></div>
+        <div class="informe-kpi"><div class="lbl">Realizado</div><div class="val">${g.real}</div></div>
+        <div class="informe-kpi"><div class="lbl">Cumplimiento</div><div class="val" style="color:${pct>=70?'#15803d':pct>0?'#d97706':'#dc2626'}">${g.plan===0?'—':pct+'%'}</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--gray-600);line-height:1.7;margin-bottom:16px">${resumenTxt}</p>
+      <div class="informe-section">Detalle por Área</div>
+      <table class="informe-table">
+        <thead><tr><th>Área</th><th>${mi===null?'Actividades':'Activas'}</th><th>Planificado</th><th>Realizado</th><th>% Cump.</th><th>Estado</th></tr></thead>
+        <tbody>${tabRows}</tbody>
+      </table>
+      <div class="informe-section">Observaciones Generales</div>
+      <p style="font-size:12px;color:var(--gray-600);line-height:1.7">${obsTxt}</p>
+
+      <div class="informe-section">Validación y Firmas</div>
+      <div class="firma-grid">
+        <div class="firma-box">
+          <div class="firma-row"><span class="firma-lbl">Nombre:</span><input class="firma-input" id="f1-nom" placeholder="Ingrese nombre completo"></div>
+          <div class="firma-row"><span class="firma-lbl">Cargo:</span><input class="firma-input" id="f1-car" placeholder="Cargo / Rol" value="Encargado(a) Prevención de Riesgos"></div>
+          <div class="firma-row"><span class="firma-lbl">Fecha:</span><input class="firma-input" id="f1-fec" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="firma-line"></div>
+          <div class="firma-cap">Firma</div>
+        </div>
+        <div class="firma-box">
+          <div class="firma-row"><span class="firma-lbl">Nombre:</span><input class="firma-input" id="f2-nom" placeholder="Ingrese nombre completo"></div>
+          <div class="firma-row"><span class="firma-lbl">Cargo:</span><input class="firma-input" id="f2-car" placeholder="Cargo / Rol" value="Gerencia General"></div>
+          <div class="firma-row"><span class="firma-lbl">Fecha:</span><input class="firma-input" id="f2-fec" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="firma-line"></div>
+          <div class="firma-cap">Firma</div>
+        </div>
+        <div class="firma-box">
+          <div class="firma-row"><span class="firma-lbl">Nombre:</span><input class="firma-input" id="f3-nom" placeholder="Ingrese nombre completo"></div>
+          <div class="firma-row"><span class="firma-lbl">Cargo:</span><input class="firma-input" id="f3-car" placeholder="Cargo / Rol" value="Presidente CPHS"></div>
+          <div class="firma-row"><span class="firma-lbl">Fecha:</span><input class="firma-input" id="f3-fec" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="firma-line"></div>
+          <div class="firma-cap">Firma</div>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('informe-content').classList.add('show');
+  document.getElementById('informe-content').scrollIntoView({behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `programa_preventivo_bakels_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function exportCSV() {
+  let rows = ['Pestaña,N°,Actividad,Responsable,Dirigido a,Frecuencia,Fecha Impl.,Total Plan,Total Realizado,% Cumplimiento,Observaciones'];
+  for(let t=1;t<=7;t++) {
+    DATA[t].rows.forEach(row => {
+      const c = calcRow(row);
+      rows.push([TAB_NAMES[t], row.n, `"${row.act}"`, `"${row.resp}"`, `"${row.dir}"`, row.freq, row.fecha, c.totalPlan, c.totalReal, c.pct??'N/A', `"${row.obs}"`].join(','));
+    });
+  }
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `programa_preventivo_bakels_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      DATA = imported;
+      renderAll();
+      saveLS();
+      alert('Datos importados correctamente.');
+    } catch { alert('Error al leer el archivo JSON.'); }
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const cargado = loadLS();
+  renderAll();
+  if(cargado) flashSaved();
+});
+</script>
+</body>
+</html>
